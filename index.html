@@ -3,7 +3,7 @@
     <head>
         <title>War game</title>
         <script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
-		<script src="memory.js"></script>
+		<script src="wargame.js"></script>
 		<link rel="stylesheet" type="text/css" href="styles.css" />
     </head>
 
@@ -11,19 +11,20 @@
 		<div id="container">
       Player 1
 			<select id="app-player1">
-				<option value="0">Human</option>
-				<option selected value="1">Minimax</option>
-				<option value="2">A-B Pruning</option>
-        <option value="3">Expectiminimax</option>
+				<option value="HM">Human</option>
+				<option selected value="MM">Minimax</option>
+				<option value="AB">A-B Pruning</option>
+        <option value="EM">Expectiminimax</option>
 			</select>
       &nbsp;&nbsp;&nbsp;
       Player 2
       <select id="app-player2">
-        <option selected value="1">Minimax</option>
-				<option value="2">A-B Pruning</option>
-        <option value="3">Expectiminimax</option>
+        <option selected value="MM">Minimax</option>
+				<option value="AB">A-B Pruning</option>
+        <option value="EM">Expectiminimax</option>
 			</select>
-      <br/><br/>
+      <br />
+      <br />
       Gamma (for Expectiminimax)
       <select id="app-gamma">
         <option value="0.2">0.2</option>
@@ -36,16 +37,69 @@
 			<button id="app-button">Start Game</button>
 
 			<div id="app-game">
-				<table id="app-board"></table>
+				<table id="app-board">
+          <tr>
+            <td class="tile" id="1">1</td>
+            <td class="tile" id="2">1</td>
+            <td class="tile" id="3">1</td>
+            <td class="tile" id="4">1</td>
+            <td class="tile" id="5">1</td>
+            <td class="tile" id="6">1</td>
+          </tr>
+          <tr>
+            <td class="tile" id="7">1</td>
+            <td class="tile" id="8">1</td>
+            <td class="tile" id="9">1</td>
+            <td class="tile" id="10">1</td>
+            <td class="tile" id="11">1</td>
+            <td class="tile" id="12">1</td>
+          </tr>
+          <tr>
+            <td class="tile" id="13">1</td>
+            <td class="tile" id="14">1</td>
+            <td class="tile" id="15">1</td>
+            <td class="tile" id="16">1</td>
+            <td class="tile" id="17">1</td>
+            <td class="tile" id="18">1</td>
+          </tr>
+          <tr>
+            <td class="tile" id="19">1</td>
+            <td class="tile" id="20">1</td>
+            <td class="tile" id="21">1</td>
+            <td class="tile" id="22">1</td>
+            <td class="tile" id="23">1</td>
+            <td class="tile" id="24">1</td>
+          </tr>
+          <tr>
+            <td class="tile" id="25">1</td>
+            <td class="tile" id="26">1</td>
+            <td class="tile" id="27">1</td>
+            <td class="tile" id="28">1</td>
+            <td class="tile" id="29">1</td>
+            <td class="tile" id="30">1</td>
+          </tr>
+          <tr>
+            <td class="tile" id="31">1</td>
+            <td class="tile" id="32">1</td>
+            <td class="tile" id="33">1</td>
+            <td class="tile" id="34">1</td>
+            <td class="tile" id="35">1</td>
+            <td class="tile" id="36">1</td>
+          </tr>
+        </table>
 			</div>
+      <br />
+      <br />
       <table align="center">
+        <tr>Score
+        </tr>
         <tr>
           <td>
-            Player 1:
+            Player 1
             <div id="app-p1-score">0</div>
           </td>
           <td>
-            Player 2:
+            Player 2
             <div id="app-p2-score">0</div>
           </td>
         </tr>
