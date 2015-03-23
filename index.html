@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>War game</title>
+        <script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
+		<script src="memory.js"></script>
+		<link rel="stylesheet" type="text/css" href="styles.css" />
+    </head>
+
+    <body>
+		<div id="container">
+      Player 1
+			<select id="app-player1">
+				<option value="0">Human</option>
+				<option selected value="1">Minimax</option>
+				<option value="2">A-B Pruning</option>
+        <option value="3">Expectiminimax</option>
+			</select>
+      &nbsp;&nbsp;&nbsp;
+      Player 2
+      <select id="app-player2">
+        <option selected value="1">Minimax</option>
+				<option value="2">A-B Pruning</option>
+        <option value="3">Expectiminimax</option>
+			</select>
+      <br/><br/>
+      Gamma (for Expectiminimax)
+      <select id="app-gamma">
+        <option value="0.2">0.2</option>
+				<option value="0.4">0.4</option>
+        <option value="0.6">0.6</option>
+        <option value="0.8">0.8</option>
+        <option value="1.0">1.0</option>
+			</select>
+      &nbsp;&nbsp;&nbsp;
+			<button id="app-button">Start Game</button>
+
+			<div id="app-game">
+				<table id="app-board"></table>
+			</div>
+      <table align="center">
+        <tr>
+          <td>
+            Player 1:
+            <div id="app-p1-score">0</div>
+          </td>
+          <td>
+            Player 2:
+            <div id="app-p2-score">0</div>
+          </td>
+        </tr>
+      </table>
+			<div id="app-message">&nbsp;</div>
+		</div>
+    </body>
+</html>
