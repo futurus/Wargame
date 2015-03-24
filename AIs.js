@@ -19,6 +19,21 @@ var superAI = function (board) {
     this.col = board[0].length;
 }
 
+superAI.prototype.printBoard = function() {
+    for (var row = 0; row < this.row; row++) {
+        var str = '';
+        for (var col = 0; col < this.col; col++) {
+            //console.log(this.board[row][col].belongsTo);
+            if (this.board[row][col].belongsTo === null) {
+                str += ' .';
+            } else {
+                str += ' ' +this.board[row][col].belongsTo.toString();
+            }
+        }
+        console.log(str);
+    }
+}
+
 superAI.prototype.getScore = function () {
     var p1score = 0;
     var p2score = 0;
@@ -32,7 +47,8 @@ superAI.prototype.getScore = function () {
             }
         }
     }
-    return p1score + (MAXSCORE - p2score); // want to maximize own score and minimze opponent's score
+    // want to maximize own score and minimze opponent's score
+    return p1score + (MAXSCORE - p2score);
 }
 
 superAI.prototype.tileRemain = function () {
@@ -47,32 +63,23 @@ superAI.prototype.tileRemain = function () {
     return remain;
 }
 
-superAI.prototype.getMove = function () {
-    // overridden by subclasses
-}
-
-var Minimax = function (board) {
-    superAI.call(this, board);
-}
-Minimax.prototype = Object.create(superAI.prototype);
-
-Minimax.prototype.move = function () {
+superAI.prototype.move = function () {
     var tileID = minimax(3, 0);
     // max depth for minimax is 3
     // 0 = me, 1 = them
     return tileID;
 }
 
-Minimax.prototype.getCommandoParaDropMoves = function (player) {
+superAI.prototype.getCommandoParaDropMoves = function (player) {
     var moves = [];
-
+    // check player
     for (var row = 0; row < this.row; row++) {
         for (var col = 0; col < this.col; col++) {
             if (this.board[row][col].belongsTo === null) {
-                if ((this.board[row === 0 ? 0 : row - 1][col === 0 ? 0 : col - 1].belongsTo === null) &&
-                    (this.board[row === 0 ? 0 : row - 1][col === this.col-1 ? this.col-1 : col + 1].belongsTo === null) &&
-                    (this.board[row === this.row-1 ? this.row-1 : row + 1][col === 0 ? 0 : col - 1].belongsTo === null) &&
-                    (this.board[row === this.row-1 ? this.row-1 : row + 1][col === this.col-1 ? this.col-1 : col + 1].belongsTo === null)) {
+                if ((this.board[row][col === 0 ? 0 : col - 1].belongsTo !== player) &&
+                    (this.board[row][col === this.col - 1 ? this.col - 1 : col + 1].belongsTo !== player) &&
+                    (this.board[row === 0 ? 0 : row - 1][col].belongsTo !== player) &&
+                    (this.board[row === this.row - 1 ? this.row - 1 : row + 1][col].belongsTo !== player)) {
                     moves.push([row * this.col + col, "CPD"]);
                 }
             }
@@ -83,23 +90,37 @@ Minimax.prototype.getCommandoParaDropMoves = function (player) {
     return moves;
 }
 
-Minimax.prototype.getM1DeathBlitzMoves = function (player) {
+superAI.prototype.getM1DeathBlitzMoves = function (player) {
     var moves = [];
+    // consider making moves an object, so
+    // moves = {id1: "type", id2: "type2"}
 
     for (var row = 0; row < this.row; row++) {
         for (var col = 0; col < this.col; col++) {
             if (this.board[row][col].belongsTo === player) {
-                if (this.board[row === 0 ? 0 : row - 1][col === 0 ? 0 : col - 1].belongsTo === null) {
-                    moves.push([row * this.col + col, "M1DB"]);
+                if (this.board[row][col === 0 ? 0 : col - 1].belongsTo === null) {
+                    if (moves.indexOf([row * this.col + (col === 0 ? 0 : col - 1), "M1DB"]) < 0) { // ain't work
+                      moves.push([row * this.col + (col === 0 ? 0 : col - 1), "M1DB"]);
+                      console.log(moves);
+                    }
                 }
-                if (this.board[row === 0 ? 0 : row - 1][col === this.col-1 ? this.col-1 : col + 1].belongsTo === null) {
-                    moves.push([row * this.col + col, "M1DB"]);
+                if (this.board[row][col === this.col - 1 ? this.col - 1 : col + 1].belongsTo === null) {
+                  if (moves.indexOf([row * this.col + (col === this.col - 1 ? this.col - 1 : col + 1), "M1DB"])) {
+                    moves.push([row * this.col + (col === this.col - 1 ? this.col - 1 : col + 1), "M1DB"]);
+                    console.log(moves);
+                  }
                 }
-                if (this.board[row === this.row-1 ? this.row-1 : row + 1][col === 0 ? 0 : col - 1].belongsTo === null) {
-                    moves.push([row * this.col + col, "M1DB"]);
+                if (this.board[row === 0 ? 0 : row - 1][col].belongsTo === null) {
+                  if (moves.indexOf([(row === 0 ? 0 : row - 1) * this.col + col, "M1DB"])) {
+                    moves.push([(row === 0 ? 0 : row - 1) * this.col + col, "M1DB"]);
+                    console.log(moves);
+                  }
                 }
-                if (this.board[row === this.row-1 ? this.row-1 : row + 1][col === this.col-1 ? this.col-1 : col + 1].belongsTo === null) {
-                    moves.push([row * this.col + col, "M1DB"]);
+                if (this.board[row === this.row - 1 ? this.row - 1 : row + 1][col].belongsTo === null) {
+                  if (moves.indexOf([(row === this.row - 1 ? this.row - 1 : row + 1) * this.col + col, "M1DB"])) {
+                    moves.push([(row === this.row - 1 ? this.row - 1 : row + 1) * this.col + col, "M1DB"]);
+                    console.log(moves);
+                  }
                 }
             }
         }
@@ -108,7 +129,7 @@ Minimax.prototype.getM1DeathBlitzMoves = function (player) {
     return moves;
 }
 
-Minimax.prototype.generateMoves = function (player) {
+superAI.prototype.generateMoves = function (player) {
     if (tileRemain() === 0) {
         return nextMoves;
     }
@@ -118,6 +139,15 @@ Minimax.prototype.generateMoves = function (player) {
     nextMoves = nextMoves.concat(getCommandoParaDropMoves(player));
     return nextMoves;
 }
+
+superAI.prototype.getMove = function () {
+    // overridden by subclasses
+}
+
+var Minimax = function (board) {
+    superAI.call(this, board);
+}
+Minimax.prototype = Object.create(superAI.prototype);
 
 Minimax.prototype.minimax = function (depth, who) {
     // generate moves
@@ -138,7 +168,7 @@ var b = [];
 for (var row = 0; row < 5; row++) {
     var r = [];
     for (var col = 0; col < 5; col++) {
-        occupied = Math.random() < 0.2 ? true : false;
+        occupied = Math.random() < 0.4 ? true : false;
         if (occupied) {
             r.push(new Tile(row * 3 + col, getRandomInt(1, 100), getRandomInt(0, 1)));
         } else {
@@ -149,7 +179,7 @@ for (var row = 0; row < 5; row++) {
 }
 
 var ai = new Minimax(b);
-console.log(ai);
+ai.printBoard();
 console.log(ai.getScore());
-console.log(ai.getCommandoParaDropMoves());
+console.log(ai.getCommandoParaDropMoves(0));
 console.log(ai.getM1DeathBlitzMoves(0));
