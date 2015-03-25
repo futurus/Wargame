@@ -1,28 +1,25 @@
 // YOUR CODE GOES HERE
-function getRandomInt (min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
 var aiThinking = false;
-// defind the Tile object
-var Tile = function(id, value) {
-	this.id = id;
-	this.value = value;
-	this.belongsTo = null;
-};
-// end of Tile object definition
 
+// consider changing Board to Game
 // defind the Board object
 var Board = function(p1, p2) {
 	this.p1 = p1;
 	this.p2 = p2;
-	this.p1tiles = [];
-	this.p2tiles = [];
+  // needs to hold the array representation of the current board so AI could get next move from board
+  this.board = null;
 	this.turnCount = 0;
-
 };
 
-Board.prototype.p1score = 0;
-Board.prototype.p2score = 0;
+Board.prototype.getBoard = function() {
+  var out = [];
+  for (var row = 0; row < 6, row++) {
+    for (var col = 0; col < 6, col++) {
+      out.push(new Tile((row * 6 + col), $("#app-board").find("td#" + (row * 6 + col)).val()));
+    }
+  }
+  this.board = out;
+}
 
 Board.prototype.populate = function() {
 	// declare variables
@@ -46,7 +43,7 @@ Board.prototype.goLive = function() {
 	var match = 0;
 
 	$('.tile').click(function () {
-		cBoard.turnCount += 1;
+		cBoard.turnCount += 1; // move this to its rightful place
 		var id = $(this).attr('id');
 		//console.log(id);
 		console.log(cBoard.turnCount);
