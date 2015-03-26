@@ -1,10 +1,10 @@
-var MAXSCORE = 1000000;
+var MAXSCORE = 1000000000;
 var MINSCORE = -MAXSCORE;
 
 // generating random moves
-function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+//function getRandomInt(min, max) {
+//    return Math.floor(Math.random() * (max - min + 1)) + min;
+//}
 
 // defind the Tile object
 var Tile = function (id, value, player) {
@@ -18,7 +18,7 @@ var superAI = function (board) {
     this.board = board; // 2d array of Tiles
     this.row = board.length;
     this.col = board[0].length;
-}
+};
 
 superAI.prototype.printBoard = function() {
     for (var row = 0; row < this.row; row++) {
@@ -33,7 +33,7 @@ superAI.prototype.printBoard = function() {
         }
         console.log(str);
     }
-}
+};
 
 superAI.prototype.getScore = function () {
     var p1score = 0;
@@ -42,15 +42,16 @@ superAI.prototype.getScore = function () {
     for (var row = 0; row < this.row; row++) {
         for (var col = 0; col < this.col; col++) {
             if (this.board[row][col].belongsTo === 0) {
-                p1score += this.board[row][col].value;
-            } else {
-                p2score += this.board[row][col].value;
+                p1score += parseInt(this.board[row][col].value);
+            } else if (this.board[row][col].belongsTo === 1) {
+                p2score += parseInt(this.board[row][col].value);
             }
         }
     }
+    //console.log('p1: ' + p1score + ', p2: ' + p2score);
     // want to maximize own score and minimze opponent's score
     return p1score + (MAXSCORE - p2score);
-}
+};
 
 superAI.prototype.tileRemain = function () {
     var remain = 0;
@@ -62,7 +63,7 @@ superAI.prototype.tileRemain = function () {
         }
     }
     return remain;
-}
+};
 
 superAI.prototype.getCommandoParaDropMoves = function (player) {
     var moves = {};
@@ -83,7 +84,7 @@ superAI.prototype.getCommandoParaDropMoves = function (player) {
     // best moves place first
     // possibly do {id: score if move made}
     return moves;
-}
+};
 
 superAI.prototype.getM1DeathBlitzMoves = function (player) {
     var moves = {};
@@ -94,30 +95,30 @@ superAI.prototype.getM1DeathBlitzMoves = function (player) {
             if (this.board[row][col].belongsTo === player) {
                 if (this.board[row][col === 0 ? 0 : col - 1].belongsTo === null) {
                     if (!moves.hasOwnProperty((row * this.col + (col === 0 ? 0 : col - 1)))) {
-                      moves[(row * this.col + (col === 0 ? 0 : col - 1))] = "M1DB";
+                        moves[(row * this.col + (col === 0 ? 0 : col - 1))] = "M1DB";
                     }
                 }
                 if (this.board[row][col === this.col - 1 ? this.col - 1 : col + 1].belongsTo === null) {
-                  if (!moves.hasOwnProperty((row * this.col + (col === this.col - 1 ? this.col - 1 : col + 1)))) {
-                    moves[(row * this.col + (col === this.col - 1 ? this.col - 1 : col + 1))] = "M1DB";
-                  }
+                    if (!moves.hasOwnProperty((row * this.col + (col === this.col - 1 ? this.col - 1 : col + 1)))) {
+                        moves[(row * this.col + (col === this.col - 1 ? this.col - 1 : col + 1))] = "M1DB";
+                    }
                 }
                 if (this.board[row === 0 ? 0 : row - 1][col].belongsTo === null) {
-                  if (!moves.hasOwnProperty(((row === 0 ? 0 : row - 1) * this.col + col))) {
-                    moves[((row === 0 ? 0 : row - 1) * this.col + col)] = "M1DB";
-                  }
+                    if (!moves.hasOwnProperty(((row === 0 ? 0 : row - 1) * this.col + col))) {
+                        moves[((row === 0 ? 0 : row - 1) * this.col + col)] = "M1DB";
+                    }
                 }
                 if (this.board[row === this.row - 1 ? this.row - 1 : row + 1][col].belongsTo === null) {
-                  if (!moves.hasOwnProperty(((row === this.row - 1 ? this.row - 1 : row + 1) * this.col + col))) {
-                    moves[((row === this.row - 1 ? this.row - 1 : row + 1) * this.col + col)] = "M1DB";
-                  }
+                    if (!moves.hasOwnProperty(((row === this.row - 1 ? this.row - 1 : row + 1) * this.col + col))) {
+                        moves[((row === this.row - 1 ? this.row - 1 : row + 1) * this.col + col)] = "M1DB";
+                    }
                 }
             }
         }
     }
     // possibly do {id: score if move made}
     return moves;
-}
+};
 
 superAI.prototype.generateMoves = function (player) {
     var nextMoves = {};
@@ -137,25 +138,25 @@ superAI.prototype.generateMoves = function (player) {
     // }
     if (Object.keys(CPD).length !== 0) {
         var keys = Object.keys(CPD);
-      for (key in Object.keys(CPD)) {
-        nextMoves[keys[key]] = CPD[keys[key]];
-      }
+        for (key in Object.keys(CPD)) {
+            nextMoves[keys[key]] = CPD[keys[key]];
+        }
     }
 
     return nextMoves;
-}
+};
 
 superAI.prototype.getMove = function () {
     // overridden by subclasses
-}
+};
 
 var Minimax = function (board) {
     superAI.call(this, board);
-}
+};
 Minimax.prototype = Object.create(superAI.prototype);
 
 Minimax.prototype.minimax = function (depth, player) {
-    console.log('In minimax, depth: ' + depth + ' for player ' + player);
+    //console.log('In minimax, depth: ' + depth + ' for player ' + player);
     // generate moves
     var nextMoves = this.generateMoves(player);
     var bestScore = (player === 0) ? MINSCORE : MAXSCORE;
@@ -164,64 +165,67 @@ Minimax.prototype.minimax = function (depth, player) {
 
     if (Object.keys(nextMoves).length === 0 || depth === 0) {
         bestScore = this.getScore();
+        //console.log(bestScore);
     } else {
         var key, row, col, keys;
         keys = Object.keys(nextMoves);
-
+        //console.log(keys);
         for (key in keys) {
-          row = Math.floor(keys[key] / this.row);
-          col = keys[key] - row * this.row;
-
-          this.board[row][col].belongsTo = player;
-          // capture if M1DB move
-          this.printBoard();
-          if (player === 0) {  // player 0 is maximizing
-               currentScore = this.minimax(depth - 1, 1);
-               if (currentScore > bestScore) {
-                  bestScore = currentScore;
-                  bestMove = keys[key];
-               }
+            row = Math.floor(keys[key] / this.row);
+            col = keys[key] - row * this.row;
+            //console.log('row ' + row + ', col ' + col);
+            this.board[row][col].belongsTo = player;
+            // capture if M1DB move
+            //this.printBoard();
+            if (player === 0) {  // player 0 is maximizing
+                currentScore = parseInt(this.minimax(depth - 1, 1)["score"]);
+                if (currentScore >= bestScore) {
+                    bestScore = currentScore;
+                    bestMove = parseInt(keys[key]);
+                }
             } else {  // player 1 is minimizing
-               currentScore = this.minimax(depth - 1, 0);
-               if (currentScore < bestScore) {
-                  bestScore = currentScore;
-                  bestMove = keys[key];
-               }
+                currentScore = parseInt(this.minimax(depth - 1, 0)["score"]);
+                //console.log(this.minimax(depth - 1, 0));
+                if (currentScore <= bestScore) {
+                    bestScore = currentScore;
+                    bestMove = parseInt(keys[key]);
+                }
             }
 
-          // undo moves: including capture moves
-          this.board[row][col].belongsTo = null;
-          this.printBoard();
+            // undo moves: including capture moves
+            this.board[row][col].belongsTo = null;
+            //this.printBoard();
         }
     }
 
-    return bestScore;
-}
+    return {"tile" : bestMove,
+            "score": bestScore};
+};
 
 Minimax.prototype.getMove = function (player) {
-    var tileID = this.minimax(1, player);
+    var best = this.minimax(1, player);
     // max depth for minimax is 3
     // 0 = me, 1 = them
-    return tileID;
-}
+    return best;
+};
 
 // testing goes here
-var b = [];
-
-for (var row = 0; row < 5; row++) {
-    var r = [];
-    for (var col = 0; col < 5; col++) {
-        occupied = Math.random() < 0.4 ? true : false;
-        if (occupied) {
-            r.push(new Tile(row * 3 + col, getRandomInt(1, 100), getRandomInt(0, 1)));
-        } else {
-            r.push(new Tile(row * 3 + col, getRandomInt(1, 100), null));
-        }
-    }
-    b.push(r);
-}
-
-var ai = new Minimax(b);
-ai.printBoard();
-console.log(ai.getScore());
-console.log(ai.getMove(0));
+//var b = [];
+//
+//for (var row = 0; row < 5; row++) {
+//    var r = [];
+//    for (var col = 0; col < 5; col++) {
+//        occupied = Math.random() < 0.4 ? true : false;
+//        if (occupied) {
+//            r.push(new Tile(row * 3 + col, getRandomInt(1, 100), getRandomInt(0, 1)));
+//        } else {
+//            r.push(new Tile(row * 3 + col, getRandomInt(1, 100), null));
+//        }
+//    }
+//    b.push(r);
+//}
+//
+//var ai = new Minimax(b);
+//ai.printBoard();
+//console.log(ai.getScore());
+//console.log(ai.getMove(0));
