@@ -17,6 +17,19 @@ var Game = function(p1, p2) {
 	this.turnCount = 0;
 };
 
+Game.prototype.getScore = function(player) {
+	var score = 0;
+
+	for (var row = 0; row < 6; row++) {
+		for (var col = 0; col < 6; col++) {
+			if (this.board[row][col].belongsTo === player) {
+				score += parseInt($("#app-board").find("td#" + (row * 6 + col)).html());
+			}
+		}
+	}
+	return score;
+}
+
 //Game.prototype.getBoard = function() {
 //  var out = [];
 //  for (var row = 0; row < 6; row++) {
@@ -45,31 +58,35 @@ Game.prototype.goLive = function() {
 
 	$('.tile').click(function () {
 		var id = $(this).attr('id');
-        var row, col;
+    var row, col;
+		row = Math.floor(id/6);
+		col = id - row * 6;
+		console.log('tile ' + id + ' (row: ' + row + ', col: ' + col + ') clicked!');
+		console.log(aiThinking);
 
 		if (currentGame.turnCount % 2 == 0) { // player 1
-			if (!aiThinking) {
+			if (!aiThinking && currentGame.board[row][col].belongsTo === null) {
 				$(this).css('backgroundColor', '#FF0000');
-                row = Math.floor(id/6);
-                col = id - row * 6;
-                console.log('tile ' + id + ' (row: ' + row + ', col: ' + col + ' clicked!');
-                currentGame.board[row][col].belongsTo = 0;
+	      currentGame.board[row][col].belongsTo = 0;
+				$('#app-p1-score').html(currentGame.getScore(currentGame.turnCount % 2));
 
 				// trigger AI's move
-                var move;
+	      var move;
 				aiThinking = true;
-                console.log('thinking');
-                var ai = new Minimax(currentGame.board);
-                currentGame.turnCount += 1; //give turn to p2
-                move = ai.getMove(currentGame.turnCount)["tile"];
-                row = Math.floor(move/6);
-                col = move - row * 6;
-                console.log('AI chose tile ' + move + ' (row: ' + row + ', col: ' + col + ' clicked!');
-                currentGame.board[row][col].belongsTo = 1;
-                $("#app-board").find("td#" + move).css('backgroundColor', '#3366FF');
-                currentGame.turnCount += 1; // give turn to p1
-                aiThinking = false;
-                console.log('done thinking');
+	      console.log('thinking');
+	      var ai = new Minimax(currentGame.board);
+	      currentGame.turnCount += 1; //give turn to p2
+	      move = ai.getMove(1)["tile"];
+	      row = Math.floor(move/6);
+	      col = move - row * 6;
+
+	      console.log('AI chose tile ' + move + ' (row: ' + row + ', col: ' + col + ') clicked!');
+	      currentGame.board[row][col].belongsTo = 1;
+	      $("#app-board").find("td#" + move).css('backgroundColor', '#3366FF');
+	      currentGame.turnCount += 1; // give turn to p1
+	      aiThinking = false;
+				$('#app-p2-score').html(currentGame.getScore(1));
+	      console.log('done thinking');
 				//$("#app-board").find("td#" + move).trigger('click');
 			} else {
 				$('#app-message').html(currentGame.p2 + ' has not completed her move. Please wait!');

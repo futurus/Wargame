@@ -50,7 +50,7 @@ superAI.prototype.getScore = function () {
     }
     //console.log('p1: ' + p1score + ', p2: ' + p2score);
     // want to maximize own score and minimze opponent's score
-    return p1score + (MAXSCORE - p2score);
+    return p1score + (-p2score);
 };
 
 superAI.prototype.tileRemain = function () {
@@ -165,7 +165,8 @@ Minimax.prototype.minimax = function (depth, player) {
 
     if (Object.keys(nextMoves).length === 0 || depth === 0) {
         bestScore = this.getScore();
-        //console.log(bestScore);
+        console.log(this.printBoard());
+        console.log(bestScore);
     } else {
         var key, row, col, keys;
         keys = Object.keys(nextMoves);
@@ -177,16 +178,18 @@ Minimax.prototype.minimax = function (depth, player) {
             this.board[row][col].belongsTo = player;
             // capture if M1DB move
             //this.printBoard();
-            if (player === 0) {  // player 0 is maximizing
+            if (player === 0) {
+              // player 0 is maximizing
                 currentScore = parseInt(this.minimax(depth - 1, 1)["score"]);
-                if (currentScore >= bestScore) {
+                if (currentScore > bestScore) {
                     bestScore = currentScore;
                     bestMove = parseInt(keys[key]);
                 }
-            } else {  // player 1 is minimizing
+            } else {
+              // player 1 is minimizing
                 currentScore = parseInt(this.minimax(depth - 1, 0)["score"]);
                 //console.log(this.minimax(depth - 1, 0));
-                if (currentScore <= bestScore) {
+                if (currentScore < bestScore) {
                     bestScore = currentScore;
                     bestMove = parseInt(keys[key]);
                 }
