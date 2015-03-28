@@ -20,7 +20,7 @@ var superAI = function (board) {
     this.col = board[0].length;
 };
 
-superAI.prototype.printBoard = function() {
+superAI.prototype.printBoard = function () {
     for (var row = 0; row < this.row; row++) {
         var str = '';
         for (var col = 0; col < this.col; col++) {
@@ -28,7 +28,7 @@ superAI.prototype.printBoard = function() {
             if (this.board[row][col].belongsTo === null) {
                 str += ' .';
             } else {
-                str += ' ' +this.board[row][col].belongsTo.toString();
+                str += ' ' + this.board[row][col].belongsTo.toString();
             }
         }
         console.log(str);
@@ -120,6 +120,28 @@ superAI.prototype.getM1DeathBlitzMoves = function (player) {
     return moves;
 };
 
+superAI.prototype.capturable = function (id, player) {
+    id = parseInt(id);
+    var capturables = [];
+    var row, col;
+    row = Math.floor(id / this.row);
+    col = id - row * this.row;
+
+    if (this.board[row][col === 0 ? 0 : col - 1].belongsTo === ((player + 1 ) % 2)) {
+        capturables.push((row * this.col + (col === 0 ? 0 : col - 1)));
+    }
+    if (this.board[row][col === this.col - 1 ? this.col - 1 : col + 1].belongsTo === ((player + 1 ) % 2)) {
+        capturables.push((row * this.col + (col === this.col - 1 ? this.col - 1 : col + 1)));
+    }
+    if (this.board[row === 0 ? 0 : row - 1][col].belongsTo === ((player + 1 ) % 2)) {
+        capturables.push(((row === 0 ? 0 : row - 1) * this.col + col));
+    }
+    if (this.board[row === this.row - 1 ? this.row - 1 : row + 1][col].belongsTo === ((player + 1 ) % 2)) {
+        capturables.push(((row === this.row - 1 ? this.row - 1 : row + 1) * this.col + col));
+    }
+    return capturables;
+};
+
 superAI.prototype.generateMoves = function (player) {
     var nextMoves = {};
     var key;
@@ -129,13 +151,14 @@ superAI.prototype.generateMoves = function (player) {
     }
 
     // get nextMoves, ordered by preference
-    //var M1DB = this.getM1DeathBlitzMoves(player);
+    var M1DB = this.getM1DeathBlitzMoves(player);
     var CPD = this.getCommandoParaDropMoves(player);
-    // if (Object.keys(M1DB).length !== 0) {
-    //   for (key in Object.keys(M1DB)) {
-    //     nextMoves[key] = M1DB[key];
-    //   }
-    // }
+    if (Object.keys(M1DB).length !== 0) {
+        var keys = Object.keys(M1DB);
+        for (key in Object.keys(M1DB)) {
+         nextMoves[keys[key]] = M1DB[keys[key]];
+        }
+    }
     if (Object.keys(CPD).length !== 0) {
         var keys = Object.keys(CPD);
         for (key in Object.keys(CPD)) {
@@ -162,51 +185,77 @@ Minimax.prototype.minimax = function (depth, player) {
     var bestScore = (player === 0) ? MINSCORE : MAXSCORE;
     var currentScore;
     var bestMove = -1;
+    var cap = [];
+    var moveType;
 
     if (Object.keys(nextMoves).length === 0 || depth === 0) {
         bestScore = this.getScore();
-        console.log(this.printBoard());
-        console.log(bestScore);
     } else {
-        var key, row, col, keys;
-        keys = Object.keys(nextMoves);
-        //console.log(keys);
-        for (key in keys) {
-            row = Math.floor(keys[key] / this.row);
-            col = keys[key] - row * this.row;
-            //console.log('row ' + row + ', col ' + col);
+        var row, col, tID;
+
+        for (tID in nextMoves) {
+            var capturables = [];
+            row = Math.floor(tID / this.row);
+            col = tID - row * this.row;
+
             this.board[row][col].belongsTo = player;
-            // capture if M1DB move
-            //this.printBoard();
+            if (nextMoves[tID] === "M1DB") {
+                capturables = this.capturable(tID, player);
+                // capture if M1DB move
+                if (capturables.length > 0) {
+                    var r, c;
+                    for (var id = 0; id < capturables.length; id++) {
+                        r = Math.floor(capturables[id] / this.row);
+                        c = capturables[id] - r * this.row;
+                        this.board[r][c].belongsTo = player;
+                    }
+                }
+            }
+
             if (player === 0) {
-              // player 0 is maximizing
+                // player 0 is maximizing
                 currentScore = parseInt(this.minimax(depth - 1, 1)["score"]);
                 if (currentScore > bestScore) {
                     bestScore = currentScore;
-                    bestMove = parseInt(keys[key]);
+                    bestMove = parseInt(tID);
+                    moveType = nextMoves[tID];
+                    cap = capturables;
                 }
             } else {
-              // player 1 is minimizing
+                // player 1 is minimizing
                 currentScore = parseInt(this.minimax(depth - 1, 0)["score"]);
                 //console.log(this.minimax(depth - 1, 0));
                 if (currentScore < bestScore) {
                     bestScore = currentScore;
-                    bestMove = parseInt(keys[key]);
+                    bestMove = parseInt(tID);
+                    moveType = nextMoves[tID];
+                    cap = capturables;
                 }
             }
 
             // undo moves: including capture moves
+            if (capturables.length > 0) {
+                var r, c;
+                for (var id = 0; id < capturables.length; id++) {
+                    r = Math.floor(capturables[id] / this.row);
+                    c = capturables[id] - r * this.row;
+                    this.board[r][c].belongsTo = (player + 1) % 2;
+                }
+            }
             this.board[row][col].belongsTo = null;
-            //this.printBoard();
         }
     }
 
-    return {"tile" : bestMove,
-            "score": bestScore};
+    return {
+        "tile": bestMove,
+        "score": bestScore,
+        "type": moveType,
+        "capture": cap
+    };
 };
 
 Minimax.prototype.getMove = function (player) {
-    var best = this.minimax(1, player);
+    var best = this.minimax(3, player);
     // max depth for minimax is 3
     // 0 = me, 1 = them
     return best;

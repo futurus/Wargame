@@ -1,111 +1,111 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Wargame</title>
-        <script src="scripts/jquery-2.1.0.min.js"></script>
-        <script src="scripts/AIs.js"></script>
-        <script src="scripts/wargame.js"></script>
-		<link rel="stylesheet" type="text/css" href="styles.css" />
-    </head>
+<head>
+    <title>Wargame</title>
+    <script src="scripts/jquery-2.1.0.min.js"></script>
+    <script src="scripts/AIs.js"></script>
+    <script src="scripts/wargame.js"></script>
+    <link rel="stylesheet" type="text/css" href="styles.css"/>
+</head>
 
-    <body>
-		<div id="container">
-      Player 1
-			<select id="app-player1">
-				<option selected value="HM">Human</option>
-				<option value="MM">Minimax</option>
-				<option value="AB">A-B Pruning</option>
+<body>
+<div id="container">
+    Player 1
+    <select id="app-player1">
+        <option selected value="HM">Human</option>
+        <option value="MM">Minimax</option>
+        <option value="AB">A-B Pruning</option>
         <option value="EM">Expectiminimax</option>
-			</select>
-      &nbsp;&nbsp;&nbsp;
-      Player 2
-      <select id="app-player2">
+    </select>
+    &nbsp;&nbsp;&nbsp;
+    Player 2
+    <select id="app-player2">
         <option selected value="MM">Minimax</option>
-				<option value="AB">A-B Pruning</option>
+        <option value="AB">A-B Pruning</option>
         <option value="EM">Expectiminimax</option>
-			</select>
-      <br />
-      <br />
-      Gamma (for Expectiminimax)
-      <select id="app-gamma">
+    </select>
+    <br/>
+    <br/>
+    Gamma (for Expectiminimax)
+    <select id="app-gamma">
         <option value="0.2">0.2</option>
-				<option value="0.4">0.4</option>
+        <option value="0.4">0.4</option>
         <option value="0.6">0.6</option>
         <option value="0.8">0.8</option>
         <option value="1.0">1.0</option>
-			</select>
-      &nbsp;&nbsp;&nbsp;
-			<button id="app-button">Start Game</button>
+    </select>
+    &nbsp;&nbsp;&nbsp;
+    <button id="app-button">Start Game</button>
 
-			<div id="app-game">
-				<table id="app-board">
-          <tr>
-            <td class="tile" id="0">4</td>
-            <td class="tile" id="1">1</td>
-            <td class="tile" id="2">3</td>
-            <td class="tile" id="3">1</td>
-            <td class="tile" id="4">7</td>
-            <td class="tile" id="5">1</td>
-          </tr>
-          <tr>
-            <td class="tile" id="6">1</td>
-            <td class="tile" id="7">2</td>
-            <td class="tile" id="8">1</td>
-            <td class="tile" id="9">10</td>
-            <td class="tile" id="10">1</td>
-            <td class="tile" id="11">6</td>
-          </tr>
-          <tr>
-            <td class="tile" id="12">1</td>
-            <td class="tile" id="13">4</td>
-            <td class="tile" id="14">11</td>
-            <td class="tile" id="15">1</td>
-            <td class="tile" id="16">31</td>
-            <td class="tile" id="17">1</td>
-          </tr>
-          <tr>
-            <td class="tile" id="18">1</td>
-            <td class="tile" id="19">12</td>
-            <td class="tile" id="20">1</td>
-            <td class="tile" id="21">14</td>
-            <td class="tile" id="22">1</td>
-            <td class="tile" id="23">1</td>
-          </tr>
-          <tr>
-            <td class="tile" id="24">1</td>
-            <td class="tile" id="25">1</td>
-            <td class="tile" id="26">16</td>
-            <td class="tile" id="27">1</td>
-            <td class="tile" id="28">14</td>
-            <td class="tile" id="29">1</td>
-          </tr>
-          <tr>
-            <td class="tile" id="30">8</td>
-            <td class="tile" id="31">20</td>
-            <td class="tile" id="32">1</td>
-            <td class="tile" id="33">18</td>
-            <td class="tile" id="34">10</td>
-            <td class="tile" id="35">1</td>
-          </tr>
+    <div id="app-game">
+        <table id="app-board">
+            <tr>
+                <td class="tile" id="0">4</td>
+                <td class="tile" id="1">1</td>
+                <td class="tile" id="2">3</td>
+                <td class="tile" id="3">1</td>
+                <td class="tile" id="4">7</td>
+                <td class="tile" id="5">1</td>
+            </tr>
+            <tr>
+                <td class="tile" id="6">1</td>
+                <td class="tile" id="7">2</td>
+                <td class="tile" id="8">1</td>
+                <td class="tile" id="9">10</td>
+                <td class="tile" id="10">1</td>
+                <td class="tile" id="11">6</td>
+            </tr>
+            <tr>
+                <td class="tile" id="12">1</td>
+                <td class="tile" id="13">4</td>
+                <td class="tile" id="14">11</td>
+                <td class="tile" id="15">1</td>
+                <td class="tile" id="16">31</td>
+                <td class="tile" id="17">1</td>
+            </tr>
+            <tr>
+                <td class="tile" id="18">1</td>
+                <td class="tile" id="19">12</td>
+                <td class="tile" id="20">1</td>
+                <td class="tile" id="21">14</td>
+                <td class="tile" id="22">1</td>
+                <td class="tile" id="23">1</td>
+            </tr>
+            <tr>
+                <td class="tile" id="24">1</td>
+                <td class="tile" id="25">1</td>
+                <td class="tile" id="26">16</td>
+                <td class="tile" id="27">1</td>
+                <td class="tile" id="28">14</td>
+                <td class="tile" id="29">1</td>
+            </tr>
+            <tr>
+                <td class="tile" id="30">8</td>
+                <td class="tile" id="31">20</td>
+                <td class="tile" id="32">1</td>
+                <td class="tile" id="33">18</td>
+                <td class="tile" id="34">10</td>
+                <td class="tile" id="35">1</td>
+            </tr>
         </table>
-			</div>
-      <br />
-      <br />
-      <table align="center">
+    </div>
+    <br/>
+    <br/>
+    <table align="center">
         <tr>Score
         </tr>
         <tr>
-          <td>
-            Player 1
-            <div id="app-p1-score">0</div>
-          </td>
-          <td>
-            Player 2
-            <div id="app-p2-score">0</div>
-          </td>
+            <td>
+                Player 1
+                <div id="app-p1-score">0</div>
+            </td>
+            <td>
+                Player 2
+                <div id="app-p2-score">0</div>
+            </td>
         </tr>
-      </table>
-			<div id="app-message">&nbsp;</div>
-		</div>
-    </body>
+    </table>
+    <div id="app-message">&nbsp;</div>
+</div>
+</body>
 </html>

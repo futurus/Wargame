@@ -1,18 +1,18 @@
 #container {
-	width: 1000px;
-	margin: 1cm auto;
-	text-align: center;
+    width: 1000px;
+    margin: 1cm auto;
+    text-align: center;
 }
 
 #app-board {
-	margin: 1cm auto 0;
+    margin: 1cm auto 0;
 }
 
 .tile {
-	padding: 0.05cm;
-	text-align: center;
-	font: 14px helvetica, arial, sans-serif;
-	background-color: lightgray;
-	width: 1cm;
-	height: 1cm;
+    padding: 0.05cm;
+    text-align: center;
+    font: 14px helvetica, arial, sans-serif;
+    background-color: lightgray;
+    width: 1cm;
+    height: 1cm;
 }
