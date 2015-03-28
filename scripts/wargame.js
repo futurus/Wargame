@@ -30,6 +30,20 @@ Game.prototype.getScore = function (player) {
     return score;
 }
 
+Game.prototype.printBoard = function () {
+    for (var row = 0; row < 6; row++) {
+        var str = '';
+        for (var col = 0; col < 6; col++) {
+            if (this.board[row][col].belongsTo === null) {
+                str += ' .';
+            } else {
+                str += ' ' + this.board[row][col].belongsTo.toString();
+            }
+        }
+        console.log(str);
+    }
+};
+
 Game.prototype.gameOver = function () {
     for (var row = 0; row < 6; row++) {
         for (var col = 0; col < 6; col++) {
@@ -46,88 +60,78 @@ Game.prototype.goLive = function () {
     var currentGame = this; // grab a hold of this
 
     $('.tile').click(function () {
-        var id = $(this).attr('id');
-        var row, col;
-        row = Math.floor(id / 6);
-        col = id - row * 6;
-        console.log('tile ' + id + ' (row: ' + row + ', col: ' + col + ') clicked!');
-        //console.log(aiThinking);
+        var currentPlayer = currentGame.turnCount % 2;
 
-        if (currentGame.turnCount % 2 == 0) { // player 1
-            if (!aiThinking && currentGame.board[row][col].belongsTo === null) {
-                // human player processing
-                if (currentGame.p1 === "HM") {
-                    var human = new superAI(currentGame.board);
-                    var M1DBMoves = human.getM1DeathBlitzMoves(0);
-                    console.log(M1DBMoves);
-                    $(this).css('backgroundColor', '#FF0000');
-                    currentGame.board[row][col].belongsTo = 0;
-                    // capture tiles for M1DB moves
+        if (!aiThinking) {
+            // declaring AI player for current turn
+            var currentAI = new Minimax(currentGame.board);
+            var move, tileID; // get next move
 
-                    if (M1DBMoves.hasOwnProperty(id)) {
-                        var cap = human.capturable(id, 0);
-                        console.log(cap);
-                        if (cap.length > 0) {
-                            for (var i0 = 0; i0 < cap.length; i0++) {
-                                //console.log(cap[i]);
-                                var r0 = Math.floor(cap[i0] / 6);
-                                var c0 = cap[i0] - r0 * 6;
-                                //console.log('r: ' + r + ', c: ' + c);
-
-                                currentGame.board[r0][c0].belongsTo = 0;
-                                $("#app-board").find("td#" + cap[i0]).css('backgroundColor', '#FF0000');
-                            }
-                        }
-                    }
-                }
-                $('#app-p1-score').html(currentGame.getScore(currentGame.turnCount % 2));
-
-                // trigger AI's move
-                var move, tile, captures;
+            if (currentPlayer === 0 && currentGame.p1 === "HM") {
+                tileID = $(this).attr('id');
+            } else {
                 aiThinking = true;
-                console.log('thinking');
-                var ai = new Minimax(currentGame.board);
-                currentGame.turnCount += 1; //give turn to p2
-                move = ai.getMove(1);
-                tile = move["tile"];
-                captures = move["capture"];
-                //console.log(move);
+                move = currentAI.getMove(currentPlayer);
+                tileID = move["tile"];
+            }
+            var color = (currentPlayer === 0? '#FF0000' : '#3366FF');
 
-                row = Math.floor(tile / 6);
-                col = tile - row * 6;
+            // break into coordinate for array manipulation
+            var row, col;
+            row = Math.floor(tileID / 6);
+            col = tileID - row * 6;
+            console.log('Player ' + currentPlayer + ' chose tile ' + tileID + ' (row: ' + row + ', col: ' + col + ')!');
+            var M1DBMoves = currentAI.getM1DeathBlitzMoves(currentPlayer);
 
-                console.log('AI chose tile ' + tile + ' (row: ' + row + ', col: ' + col + ') clicked!');
-                currentGame.board[row][col].belongsTo = 1;
-                $("#app-board").find("td#" + tile).css('backgroundColor', '#3366FF');
+            currentGame.board[row][col].belongsTo = currentPlayer;
+            $("#app-board").find("td#" + tileID).css('backgroundColor', color);
 
-                if (captures.length > 0) {
-                    for (var i1 = 0; i1 < captures.length; i1++) {
-                        //console.log(captures[i]);
-                        var r1 = Math.floor(captures[i1] / 6);
-                        var c1 = captures[i1] - r1 * 6;
-                        //console.log('r: ' + r + ', c: ' + c);
+            // process capturing for M1DB moves
+            if (M1DBMoves.hasOwnProperty(tileID)) {
+                var cap = currentAI.capturable(tileID, currentPlayer);
 
-                        currentGame.board[r1][c1].belongsTo = 1;
-                        $("#app-board").find("td#" + captures[i1]).css('backgroundColor', '#3366FF');
+                if (cap.length > 0) {
+                    for (var i0 = 0; i0 < cap.length; i0++) {
+                        //console.log(cap[i]);
+                        var r0 = Math.floor(cap[i0] / 6);
+                        var c0 = cap[i0] - r0 * 6;
+
+                        currentGame.board[r0][c0].belongsTo = currentPlayer;
+                        $("#app-board").find("td#" + cap[i0]).css('backgroundColor', color);
                     }
                 }
-                currentGame.turnCount += 1; // give turn to p1
-                aiThinking = false;
-                $('#app-p2-score').html(currentGame.getScore(1));
-                console.log('done thinking');
-                //$("#app-board").find("td#" + move).trigger('click');
-            } else {
-                $('#app-message').html(currentGame.p2 + ' has not completed her move. Please wait!');
             }
+            // update score board
+            $('#app-p0-score').html(currentGame.getScore(0));
+            $('#app-p1-score').html(currentGame.getScore(1));
 
-        }
+            aiThinking = false;
+            currentGame.turnCount += 1;
+            currentPlayer = currentGame.turnCount % 2;
 
-        if (currentGame.gameOver()) {
-            if (currentGame.getScore(0) > currentGame.getScore(1)) {
-                $('#app-message').html(currentGame.p1 + ' won!');
+            if (currentGame.gameOver()) {
+                currentGame.printBoard();
+                console.log("Game Over!");
+
+                if (currentGame.getScore(0) > currentGame.getScore(1)) {
+                    $('#app-message').html('Player 1 won!');
+                } else {
+                    $('#app-message').html('Player 2 won!');
+                }
+
             } else {
-                $('#app-message').html(currentGame.p2 + ' won!');
+                console.log("Player " + currentPlayer + " has next move");
+                // trigger next player
+                if (currentPlayer === 1) {
+                    $("#app-board").find("td#0").trigger('click');
+                } else {
+                    if (currentGame.p1 === "MM") {
+                        $("#app-board").find("td#0").trigger('click');
+                    }
+                }
             }
+        } else {
+            $('#app-message').html(currentPlayer + ' has not completed her move. Please wait!');
         }
     });
 };
@@ -136,6 +140,11 @@ Game.prototype.startGame = function () {
     // Add the event listeners
     this.goLive();
     $('#app-message').html('Game between ' + this.p1 + ' and ' + this.p2 + ' started!');
+
+    // this is where to trigger AI vs AI games
+    if (this.p1 === "MM") {
+        $("#app-board").find("td#0").trigger('click');
+    }
 };
 // end of Board object definition
 
