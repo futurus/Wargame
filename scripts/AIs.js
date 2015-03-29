@@ -1,11 +1,6 @@
 var MAXSCORE = 1000000000;
 var MINSCORE = -MAXSCORE;
 
-// generating random moves
-//function getRandomInt(min, max) {
-//    return Math.floor(Math.random() * (max - min + 1)) + min;
-//}
-
 // defind the Tile object
 var Tile = function (id, value, player) {
     this.id = id;
@@ -257,6 +252,105 @@ Minimax.prototype.minimax = function (depth, player) {
 Minimax.prototype.getMove = function (player) {
     var best = this.minimax(3, player);
     // max depth for minimax is 3
+    // 0 = me, 1 = them
+    return best;
+};
+
+
+var ABPruning = function (board) {
+    Minimax.call(this, board);
+};
+ABPruning.prototype = Object.create(Minimax.prototype);
+
+
+ABPruning.prototype.alphabeta = function (depth, alpha, beta, player) {
+    // generate moves
+    var nextMoves = this.generateMoves(player);
+    var bestScore = (player === 0) ? MINSCORE : MAXSCORE;
+    var currentScore;
+    var a = MINSCORE;
+    var b = MAXSCORE;
+    var bestMove = -1;
+    var cap = [];
+    var moveType;
+
+    if (Object.keys(nextMoves).length === 0 || depth === 0) {
+        bestScore = this.getScore();
+    } else {
+        var row, col, tID;
+
+        for (tID in nextMoves) {
+            var capturables = [];
+            row = Math.floor(tID / this.row);
+            col = tID - row * this.row;
+
+            this.board[row][col].belongsTo = player;
+            if (nextMoves[tID] === "M1DB") {
+                capturables = this.capturable(tID, player);
+                // capture if M1DB move
+                if (capturables.length > 0) {
+                    var r, c;
+                    for (var id = 0; id < capturables.length; id++) {
+                        r = Math.floor(capturables[id] / this.row);
+                        c = capturables[id] - r * this.row;
+                        this.board[r][c].belongsTo = player;
+                    }
+                }
+            }
+
+            if (player === 0) {
+                // player 0 is maximizing
+                currentScore = parseInt(this.alphabeta(depth - 1, 1)["score"]);
+                if (currentScore > bestScore) {
+                    a = currentScore;
+                    bestScore = currentScore;
+                    bestMove = parseInt(tID);
+                    moveType = nextMoves[tID];
+                    cap = capturables;
+                }
+                if (b <= a) {
+                    break;
+                }
+            } else {
+                // player 1 is minimizing
+                currentScore = parseInt(this.alphabeta(depth - 1, 0)["score"]);
+                //console.log(this.minimax(depth - 1, 0));
+                if (currentScore < bestScore) {
+                    b = currentScore;
+                    bestScore = currentScore;
+                    bestMove = parseInt(tID);
+                    moveType = nextMoves[tID];
+                    cap = capturables;
+                }
+                if (b <= a) {
+                    break;
+                }
+            }
+
+            // undo moves: including capture moves
+            if (capturables.length > 0) {
+                var r, c;
+                for (var id = 0; id < capturables.length; id++) {
+                    r = Math.floor(capturables[id] / this.row);
+                    c = capturables[id] - r * this.row;
+                    this.board[r][c].belongsTo = (player + 1) % 2;
+                }
+            }
+            this.board[row][col].belongsTo = null;
+        }
+    }
+
+    return {
+        "tile": bestMove,
+        "score": bestScore,
+        "type": moveType,
+        "capture": cap
+    };
+};
+
+ABPruning.prototype.getMove = function (player) {
+    var best = this.alphabeta(3, MINSCORE, MAXSCORE, player);
+    // max depth for minimaxAB is 5
     // 0 = me, 1 = them
     return best;
 };

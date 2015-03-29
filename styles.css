@@ -16,3 +16,11 @@
     width: 1cm;
     height: 1cm;
 }
+
+.header {
+    padding: 0.01cm;
+    text-align: center;
+    font: 14px helvetica, arial, sans-serif;
+    width: 0.5cm;
+    height: 0.5cm;
+}
