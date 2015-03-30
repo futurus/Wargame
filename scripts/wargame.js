@@ -1,17 +1,36 @@
 // YOUR CODE GOES HERE
 var aiThinking = false;
 var startTime;
-var delay = 1000;
+var reTime;
+var delay = 0;
+
+// to get current timestamp
+Date.prototype.timeNow = function () {
+    return ((this.getHours() < 10) ? "0" : "") + this.getHours() +
+        ":" + ((this.getMinutes() < 10) ? "0" : "") + this.getMinutes() +
+        ":" + ((this.getSeconds() < 10) ? "0" : "") + this.getSeconds() +
+        "." + this.getMilliseconds();
+}
 
 // generating random moves
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function translatePosition(id) {
+    var columns = ["A", "B", "C", "D", "E", "F"];
+    var rows = ["1", "2", "3", "4", "5", "6"];
+
+    var r0 = Math.floor(id / 6);
+    var c0 = id - r0 * 6;
+
+    return columns[c0] + rows[r0];
+}
+
 function getRandom6By6() {
     var out = [];
     for (var row = 0; row < 6; row++) {
-        var r = []
+        var r = [];
         for (var col = 0; col < 6; col++) {
             r.push(getRandomInt(1, 100));
         }
@@ -70,7 +89,12 @@ var Game = function (p1, p2) {
     this.p2 = p2;
     // needs to hold the array representation of the current board so AI could get next move from board
     this.board = [];
+    this.gamma = 1;
     this.turnCount = 0;
+};
+
+Game.prototype.setGamma = function(gamma) {
+    this.gamma = gamma;
 };
 
 Game.prototype.assignBoard = function() {
@@ -126,34 +150,48 @@ Game.prototype.gameOver = function () {
 
 Game.prototype.goLive = function () {
     var currentGame = this; // grab a hold of this
-    startTime = performance.now();
 
     $('.tile').click(function () {
+        var choice;
         var currentPlayer = currentGame.turnCount % 2;
+        var currentPlayerType = currentPlayer === 0 ? currentGame.p1 : currentGame.p2;
 
         if (!aiThinking) {
             // declaring AI player for current turn
             var currentAI;
-            var move, tileID; // get next move
+            var move, tileID, moveType; // get next move
+            var M1DBMoves, SABMoves, CPDMoves;
 
             if (currentPlayer === 0 && currentGame.p1 === "HM") {
-                currentAI = new superAI(currentGame.board);
+                if (currentGame.p2 === "EM") {
+                    currentAI = new Expectiminimax(currentGame.board, currentGame.gamma);
+                    SABMoves = currentAI.getSabotageMoves(currentPlayer);
+                } else {
+                    currentAI = new superAI(currentGame.board);
+                }
                 tileID = $(this).attr('id');
+                M1DBMoves = currentAI.getM1DeathBlitzMoves(currentPlayer);
+                CPDMoves = currentAI.getCommandoParaDropMoves(currentPlayer);
+
+                if (M1DBMoves.hasOwnProperty(tileID)) {
+                    moveType = "M1DB";
+                } else if (CPDMoves.hasOwnProperty(tileID)) {
+                    moveType = "CPD";
+                }
             } else {
                 $('#app-p' + currentPlayer + '-msg').html('Thinking!');
-                if (currentPlayer === 0 && currentGame.p1 === "MM") {
+                if (currentPlayerType === "MM") {
                     currentAI = new Minimax(currentGame.board);
-                } else if (currentPlayer === 0 && currentGame.p1 === "AB") {
+                } else if (currentPlayerType === "AB") {
                     currentAI = new ABPruning(currentGame.board);
-                } else if (currentPlayer === 1 && currentGame.p2 === "MM") {
-                    currentAI = new Minimax(currentGame.board);
-                } else if (currentPlayer === 1 && currentGame.p2 === "AB") {
-                    currentAI = new ABPruning(currentGame.board);
+                } else if (currentPlayerType === "EM") {
+                    currentAI = new Expectiminimax(currentGame.board, currentGame.gamma);
                 }
 
                 aiThinking = true;
                 move = currentAI.getMove(currentPlayer);
                 tileID = move["tile"];
+                moveType = move["type"];
             }
             var color = (currentPlayer === 0? '#FF0000' : '#3366FF');
 
@@ -161,51 +199,96 @@ Game.prototype.goLive = function () {
             var row, col;
             row = Math.floor(tileID / 6);
             col = tileID - row * 6;
-            console.log('Player ' + currentPlayer + ' chose tile ' + tileID + ' (row: ' + row + ', col: ' + col + ')!');
-            var M1DBMoves = currentAI.getM1DeathBlitzMoves(currentPlayer);
 
-            currentGame.board[row][col].belongsTo = currentPlayer;
-            $("#app-board").find("td#" + tileID).css('backgroundColor', color);
+            if (currentPlayer === 0 && currentGame.p1 === "HM" && currentGame.p2 === "EM") {
+                if (CPDMoves.hasOwnProperty(tileID) && SABMoves.hasOwnProperty(tileID)) {
+                    var str = "Are you sure to proceed with Sabotage move (success rate: " + currentGame.gamma + ")?";
+                    str += "If not, this will be a Commando ParaDrop move";
+                    choice = confirm(str);
 
+                    if (choice === true) {
+                        moveType = "SAB";
+                    } else {
+                        moveType = "CPD";
+                    }
+                }
+            }
+
+            var cap, i0, r0, c0;
             // process capturing for M1DB moves
-            if (M1DBMoves.hasOwnProperty(tileID)) {
-                var cap = currentAI.capturable(tileID, currentPlayer);
+            if (moveType === "M1DB") {
+                currentGame.board[row][col].belongsTo = currentPlayer;
+                $("#app-board").find("td#" + tileID).css('backgroundColor', color);
+
+                cap = currentAI.capturable(tileID, currentPlayer);
 
                 if (cap.length > 0) {
-                    for (var i0 = 0; i0 < cap.length; i0++) {
+                    for (i0 = 0; i0 < cap.length; i0++) {
                         //console.log(cap[i]);
-                        var r0 = Math.floor(cap[i0] / 6);
-                        var c0 = cap[i0] - r0 * 6;
+                        r0 = Math.floor(cap[i0] / 6);
+                        c0 = cap[i0] - r0 * 6;
 
                         currentGame.board[r0][c0].belongsTo = currentPlayer;
                         $("#app-board").find("td#" + cap[i0]).css('backgroundColor', color);
                     }
                 }
+            } else if (moveType === "SAB") {
+                // roll the dice
+                var roll = Math.random();
+
+                if (roll < currentGame.gamma) {
+                    currentGame.board[row][col].belongsTo = currentPlayer;
+                    $("#app-board").find("td#" + tileID).css('backgroundColor', color);
+
+                    cap = currentAI.capturable(tileID, currentPlayer);
+                    if (cap.length > 0) {
+                        for (i0 = 0; i0 < cap.length; i0++) {
+                            //console.log(cap[i]);
+                            r0 = Math.floor(cap[i0] / 6);
+                            c0 = cap[i0] - r0 * 6;
+
+                            currentGame.board[r0][c0].belongsTo = currentPlayer;
+                            $("#app-board").find("td#" + cap[i0]).css('backgroundColor', color);
+                        }
+                    }
+                } else {
+                    currentGame.board[row][col].belongsTo = currentPlayer === 0 ? 1 : 0;
+                    $("#app-board").find("td#" + tileID).css('backgroundColor', (currentPlayer === 0? '#3366FF' : '#FF0000'));
+                }
+            } else if (moveType === "CPD") {
+                currentGame.board[row][col].belongsTo = currentPlayer;
+                $("#app-board").find("td#" + tileID).css('backgroundColor', color);
             }
+
+            console.log('Player ' + currentPlayer + ' chose tile ' + translatePosition(tileID) + ' (' + moveType + ', row: ' + row + ', col: ' + col + ')!');
+
             // update score board
             $('#app-p0-score').html(currentGame.getScore(0));
             $('#app-p1-score').html(currentGame.getScore(1));
 
             if (currentGame.gameOver()) {
                 currentGame.printBoard();
-                console.log("Game Over!");
+                console.log("Game Over! Took " + Math.round((window.performance.now() - startTime)/1000) + 's.');
 
                 if (currentGame.getScore(0) > currentGame.getScore(1)) {
                     $('#app-message').html('Player 1 won!');
-                } else {
+                } else if (currentGame.getScore(0) < currentGame.getScore(1)) {
                     $('#app-message').html('Player 2 won!');
+                } else {
+                    $('#app-message').html("It's a tie!");
                 }
 
             } else {
-                $('#app-p' + currentPlayer + '-msg').html('I chose ' + tileID + ', took me '  + ' to make that decision.');
+                $('#app-p' + currentPlayer + '-msg').html('(' + new Date().timeNow() + ') I chose ' + translatePosition(tileID) + ', took me ' + Math.round(window.performance.now()-reTime) + 'ms to make that decision.');
 
                 aiThinking = false;
                 currentGame.turnCount += 1;
                 currentPlayer = currentGame.turnCount % 2;
-                console.log("Player " + currentPlayer + " has next move");
-                $('#app-p' + currentPlayer + '-msg').html('My turn.');
+                //console.log("Player " + currentPlayer + " has next move");
+                $('#app-p' + currentPlayer + '-msg').html('(' + new Date().timeNow() + ') My turn.');
 
                 // trigger next player
+                reTime = window.performance.now();
                 if (currentPlayer === 1) {
                     setTimeout(function(){
                         $("#app-board").find("td#0").trigger('click');
@@ -229,6 +312,8 @@ Game.prototype.startGame = function () {
     this.goLive();
     $('#app-message').html('Game between ' + this.p1 + ' and ' + this.p2 + ' started!');
 
+    startTime = window.performance.now();
+    reTime = startTime;
     // this is where to trigger AI vs AI games
     if (this.p1 !== "HM") {
         $("#app-board").find("td#0").trigger('click');
@@ -238,8 +323,9 @@ Game.prototype.startGame = function () {
 
 // actual app
 $(function () {
-    $('#app-message').html("Choose settings then press 'Start game' to play. 'New Game' to start over.");
-    $('#app-button').click(function () {
+    $('#app-new').hide();
+    $('#app-message').html("Choose settings then press 'Start' to play. 'New Game' to start over.");
+    $('#app-start').click(function () {
         var p1 = $('#app-player1').val();
         var p2 = $('#app-player2').val();
         var map = $('#app-choose-board').val();
@@ -266,9 +352,13 @@ $(function () {
         }
 
         var game = new Game(p1, p2);
+        game.setGamma(parseFloat($('#app-gamma').val()));
         game.startGame();
+
+        $('#app-start').hide();
+        $('#app-new').show();
     });
-    $('#app-newgame').click(function () {
+    $('#app-new').click(function () {
         location.reload();
     });
 });
