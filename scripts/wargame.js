@@ -260,8 +260,6 @@ Game.prototype.goLive = function () {
                 $("#app-board").find("td#" + tileID).css('backgroundColor', color);
             }
 
-            console.log('Player ' + currentPlayer + ' chose tile ' + translatePosition(tileID) + ' (' + moveType + ', row: ' + row + ', col: ' + col + ')!');
-
             // update score board
             $('#app-p0-score').html(currentGame.getScore(0));
             $('#app-p1-score').html(currentGame.getScore(1));
@@ -279,6 +277,7 @@ Game.prototype.goLive = function () {
                 }
 
             } else {
+                console.log('Player ' + currentPlayer + ' chose tile ' + translatePosition(tileID) + ' (' + moveType + ', ' + Math.round(window.performance.now()-reTime) + 'ms, ' + currentAI.nodeExpanded + ' nodes)!');
                 $('#app-p' + currentPlayer + '-msg').html('(' + new Date().timeNow() + ') I chose ' + translatePosition(tileID) + ', took me ' + Math.round(window.performance.now()-reTime) + 'ms to make that decision.');
 
                 aiThinking = false;

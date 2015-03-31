@@ -14,6 +14,7 @@ var superAI = function (board) {
     this.board = board; // 2d array of Tiles
     this.row = board.length;
     this.col = board[0].length;
+    this.nodeExpanded = 0;
 };
 
 superAI.prototype.printBoard = function () {
@@ -44,8 +45,8 @@ superAI.prototype.getScore = function () {
             }
         }
     }
-    //console.log('p1: ' + p1score + ', p2: ' + p2score);
-    // want to maximize own score and minimze opponent's score
+
+    // want to maximize own score and minimize opponent's score
     return p1score + (-p2score);
 };
 
@@ -190,19 +191,86 @@ superAI.prototype.generateMoves = function (player) {
     var M1DB = this.getM1DeathBlitzMoves(player);
     var CPD = this.getCommandoParaDropMoves(player);
     if (Object.keys(M1DB).length !== 0) {
-        var keys = Object.keys(M1DB);
-        for (key in Object.keys(M1DB)) {
-         nextMoves[keys[key]] = M1DB[keys[key]];
+        for (key in M1DB) {
+         nextMoves[key] = M1DB[key];
         }
     }
     if (Object.keys(CPD).length !== 0) {
-        var keys = Object.keys(CPD);
-        for (key in Object.keys(CPD)) {
-            nextMoves[keys[key]] = CPD[keys[key]];
+        for (key in CPD) {
+            nextMoves[key] = CPD[key];
         }
     }
 
     return nextMoves;
+};
+
+superAI.prototype.points = function(tID, type, player) {
+    var b = [];
+
+    for (var r0 = 0; r0 < this.row; r0++) {
+        var r_ = [];
+        for (var c0 = 0; c0 < this.col; c0++) {
+            r_.push(new Tile(this.board[r0][c0].id, this.board[r0][c0].value, this.board[r0][c0].belongsTo));
+        }
+        b.push(r_);
+    }
+
+    var row = Math.floor(tID / this.row);
+    var col = tID - row * this.row;
+
+    b[row][col].belongsTo = player;
+
+    if (type === "M1DB") {
+        var capturables = this.capturable(tID, player);
+
+        if (capturables.length > 0) {
+            var r, c;
+            for (var id = 0; id < capturables.length; id++) {
+                r = Math.floor(capturables[id] / this.row);
+                c = capturables[id] - r * this.row;
+                b[r][c].belongsTo = player;
+            }
+        }
+    }
+
+    var p1score = 0;
+    var p2score = 0;
+
+    for (row = 0; row < this.row; row++) {
+        for (col = 0; col < this.col; col++) {
+            if (b[row][col].belongsTo === 0) {
+                p1score += parseInt(b[row][col].value);
+            } else if (b[row][col].belongsTo === 1) {
+                p2score += parseInt(b[row][col].value);
+            }
+        }
+    }
+    // want to maximize own score and minimize opponent's score
+    return p1score + (-p2score);
+};
+
+superAI.prototype.reorderMoves = function(player) {
+    var nextMoves = this.generateMoves(player);
+    var moves = [];
+    var tID, point;
+
+    if (nextMoves.length !== 0) {
+        for (tID in nextMoves) {
+            point = parseInt(this.points(tID, nextMoves[tID], player));
+            moves.push({tile: parseInt(tID), type: nextMoves[tID], zscore: point});
+        }
+
+        var inc = moves.slice(0);
+        var dec = moves.slice(0);
+
+        if (player === 0) {
+            return dec.sort(function (a, b) { if (a.zscore >= b.zscore) { return -1; } else { return 1 }});
+        } else {
+            return inc.sort(function (a, b) { if (a.zscore <= b.zscore) { return -1; } else { return 1 }});
+        }
+    }
+
+    return moves;
 };
 
 superAI.prototype.getMove = function () {
@@ -217,7 +285,8 @@ Minimax.prototype = Object.create(superAI.prototype);
 Minimax.prototype.minimax = function (depth, player) {
     //console.log('In minimax, depth: ' + depth + ' for player ' + player);
     // generate moves
-    var nextMoves = this.generateMoves(player);
+    this.nodeExpanded += 1;
+    var nextMoves = this.reorderMoves(player);
     var bestScore = (player === 0) ? MINSCORE : MAXSCORE;
     var opponent = player === 0 ? 1 : 0;
     var currentScore;
@@ -228,15 +297,17 @@ Minimax.prototype.minimax = function (depth, player) {
     if (Object.keys(nextMoves).length === 0 || depth === 0) {
         bestScore = this.getScore();
     } else {
-        var row, col, tID;
+        var row, col, tID, index, type;
 
-        for (tID in nextMoves) {
+        for (index = 0; index < nextMoves.length; index++) {
+            tID = (nextMoves[index])['tile'];
+            type = (nextMoves[index])['type'];
             var capturables = [];
             row = Math.floor(tID / this.row);
             col = tID - row * this.row;
 
             this.board[row][col].belongsTo = player;
-            if (nextMoves[tID] === "M1DB") {
+            if (type === "M1DB") {
                 capturables = this.capturable(tID, player);
                 // capture if M1DB move
                 if (capturables.length > 0) {
@@ -267,7 +338,7 @@ Minimax.prototype.minimax = function (depth, player) {
                 if (currentScore > bestScore) {
                     bestScore = currentScore;
                     bestMove = parseInt(tID);
-                    moveType = nextMoves[tID];
+                    moveType = type;
                     cap = capturables;
                 }
             } else {
@@ -275,7 +346,7 @@ Minimax.prototype.minimax = function (depth, player) {
                 if (currentScore < bestScore) {
                     bestScore = currentScore;
                     bestMove = parseInt(tID);
-                    moveType = nextMoves[tID];
+                    moveType = type;
                     cap = capturables;
                 }
             }
@@ -306,12 +377,12 @@ ABPruning.prototype = Object.create(Minimax.prototype);
 
 ABPruning.prototype.alphabeta = function (depth, alpha, beta, player) {
     // generate moves
-    var nextMoves = this.generateMoves(player);
+
+    this.nodeExpanded += 1;
+    var nextMoves = this.reorderMoves(player);
     var bestScore = (player === 0) ? MINSCORE : MAXSCORE;
     var opponent = player === 0 ? 1 : 0;
     var currentScore;
-    var a = MINSCORE;
-    var b = MAXSCORE;
     var bestMove = -1;
     var cap = [];
     var moveType;
@@ -319,20 +390,22 @@ ABPruning.prototype.alphabeta = function (depth, alpha, beta, player) {
     if (Object.keys(nextMoves).length === 0 || depth === 0) {
         bestScore = this.getScore();
     } else {
-        var row, col, tID;
+        var row, col, tID, index, type;
 
-        for (tID in nextMoves) {
+        for (index = 0; index < nextMoves.length; index++) {
+            tID = (nextMoves[index])['tile'];
+            type = (nextMoves[index])['type'];
             var capturables = [];
             row = Math.floor(tID / this.row);
             col = tID - row * this.row;
+            var r, c, id;
 
             this.board[row][col].belongsTo = player;
-            if (nextMoves[tID] === "M1DB") {
+            if (type === "M1DB") {
                 capturables = this.capturable(tID, player);
                 // capture if M1DB move
                 if (capturables.length > 0) {
-                    var r, c;
-                    for (var id = 0; id < capturables.length; id++) {
+                    for (id = 0; id < capturables.length; id++) {
                         r = Math.floor(capturables[id] / this.row);
                         c = capturables[id] - r * this.row;
                         this.board[r][c].belongsTo = player;
@@ -340,12 +413,11 @@ ABPruning.prototype.alphabeta = function (depth, alpha, beta, player) {
                 }
             }
 
-            currentScore = parseInt(this.alphabeta(depth - 1, a, b, opponent)["score"]);
+            currentScore = parseInt(this.alphabeta(depth - 1, alpha, beta, opponent)["score"]);
 
             // undo moves: including capture moves
             if (capturables.length > 0) {
-                var r, c;
-                for (var id = 0; id < capturables.length; id++) {
+                for (id = 0; id < capturables.length; id++) {
                     r = Math.floor(capturables[id] / this.row);
                     c = capturables[id] - r * this.row;
                     this.board[r][c].belongsTo = (player + 1) % 2;
@@ -356,25 +428,27 @@ ABPruning.prototype.alphabeta = function (depth, alpha, beta, player) {
             if (player === 0) {
                 // player 0 is maximizing
                 if (currentScore > bestScore) {
-                    a = currentScore;
+                    alpha = currentScore;
                     bestScore = currentScore;
                     bestMove = parseInt(tID);
-                    moveType = nextMoves[tID];
+                    moveType = type;
                     cap = capturables;
                 }
-                if (b <= a) {
+                if (beta <= alpha) {
+                    //console.log("skipping player 0, a: " + alpha + ", b: " + beta);
                     break;
                 }
             } else {
                 // player 1 is minimizing
                 if (currentScore < bestScore) {
-                    b = currentScore;
+                    beta = currentScore;
                     bestScore = currentScore;
                     bestMove = parseInt(tID);
-                    moveType = nextMoves[tID];
+                    moveType = type;
                     cap = capturables;
                 }
-                if (b <= a) {
+                if (beta <= alpha) {
+                    //console.log("skipping player 1, a: " + alpha + ", b: " + beta);
                     break;
                 }
             }
@@ -390,18 +464,7 @@ ABPruning.prototype.alphabeta = function (depth, alpha, beta, player) {
 };
 
 ABPruning.prototype.getMove = function (player) {
-    var best; // = this.alphabeta(3, MINSCORE, MAXSCORE, player);
-    var tRemains = this.tileRemain();
-
-    if (tRemains > 16) { // 17 to 36
-        best = this.alphabeta(3, MINSCORE, MAXSCORE, player);
-    } else if (tRemains > 11) { // 12 to 16
-        best = this.alphabeta(4, MINSCORE, MAXSCORE, player);
-    } else if (tRemains > 8) { // 9 to 11
-        best = this.alphabeta(5, MINSCORE, MAXSCORE, player);
-    } else { // 6 to 8
-        best = this.alphabeta(6, MINSCORE, MAXSCORE, player);
-    }
+    var best = this.alphabeta(5, MINSCORE, MAXSCORE, player);
 
     // max depth for minimaxAB is 5
     // 0 = me, 1 = them
@@ -456,6 +519,7 @@ Expectiminimax.prototype.generateMoves = function (player) {
 Expectiminimax.prototype.expectiminimax = function (depth, player) {
     //console.log('In minimax, depth: ' + depth + ' for player ' + player);
     // generate moves
+    this.nodeExpanded += 1;
     var nextMoves = this.generateMoves(player);
     var bestScore = (player === 0) ? MINSCORE : MAXSCORE;
     var opponent = player === 0 ? 1 : 0;
