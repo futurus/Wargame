@@ -202,8 +202,8 @@ Game.prototype.goLive = function () {
 
             if (currentPlayer === 0 && currentGame.p1 === "HM" && currentGame.p2 === "EM") {
                 if (CPDMoves.hasOwnProperty(tileID) && SABMoves.hasOwnProperty(tileID)) {
-                    var str = "Are you sure to proceed with Sabotage move (success rate: " + currentGame.gamma + ")?";
-                    str += "If not, this will be a Commando ParaDrop move";
+                    var str = "'OK' to proceed with a Sabotage move (success rate: " + currentGame.gamma * 100 + "%)?";
+                    str += "\n'Cancel' to proceed with a Commando ParaDrop move.";
                     choice = confirm(str);
 
                     if (choice === true) {

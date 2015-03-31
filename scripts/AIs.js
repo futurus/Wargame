@@ -538,7 +538,7 @@ Expectiminimax.prototype.expectiminimax = function (depth, player) {
             row = Math.floor(tID / this.row);
             col = tID - row * this.row;
 
-            if (Array.isArray(nextMoves[tID])) { // check sabotage
+            if (Array.isArray(nextMoves[tID]) && nextMoves[tID][0] === "SAB") { // check sabotage
                 // success
                 this.board[row][col].belongsTo = player;
                 capturables = this.capturable(tID, player);
