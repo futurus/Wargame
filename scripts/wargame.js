@@ -277,7 +277,7 @@ Game.prototype.goLive = function () {
                 }
 
             } else {
-                console.log('Player ' + currentPlayer + ' chose tile ' + translatePosition(tileID) + ' (' + moveType + ', ' + Math.round(window.performance.now()-reTime) + 'ms, ' + currentAI.nodeExpanded + ' nodes)!');
+                console.log(currentPlayer + ', ' + translatePosition(tileID) + ', ' + moveType + ', ' + Math.round(window.performance.now()-reTime) + ', ' + currentAI.nodeExpanded);
                 $('#app-p' + currentPlayer + '-msg').html('(' + new Date().timeNow() + ') I chose ' + translatePosition(tileID) + ', took me ' + Math.round(window.performance.now()-reTime) + 'ms to make that decision.');
 
                 aiThinking = false;
