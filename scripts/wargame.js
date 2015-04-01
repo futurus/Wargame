@@ -32,7 +32,7 @@ function getRandom6By6() {
     for (var row = 0; row < 6; row++) {
         var r = [];
         for (var col = 0; col < 6; col++) {
-            r.push(getRandomInt(1, 100));
+            r.push(getRandomInt(1, 99));
         }
         out.push(r);
     }
