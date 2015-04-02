@@ -286,7 +286,7 @@ Minimax.prototype.minimax = function (depth, player) {
     //console.log('In minimax, depth: ' + depth + ' for player ' + player);
     // generate moves
     this.nodeExpanded += 1;
-    var nextMoves = this.reorderMoves(player);
+    var nextMoves = this.generateMoves(player);
     var bestScore = (player === 0) ? MINSCORE : MAXSCORE;
     var opponent = player === 0 ? 1 : 0;
     var currentScore;
@@ -299,9 +299,8 @@ Minimax.prototype.minimax = function (depth, player) {
     } else {
         var row, col, tID, index, type;
 
-        for (index = 0; index < nextMoves.length; index++) {
-            tID = (nextMoves[index])['tile'];
-            type = (nextMoves[index])['type'];
+        for (tID in nextMoves) {
+            type = nextMoves[tID];
             var capturables = [];
             row = Math.floor(tID / this.row);
             col = tID - row * this.row;
