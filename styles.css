@@ -1,11 +1,11 @@
 #container {
     width: 1000px;
-    margin: 1cm auto;
+    margin: 0.5cm auto;
     text-align: center;
 }
 
 #app-board {
-    margin: 1cm auto 0;
+    margin: 0.5cm auto 0;
 }
 
 .tile {
@@ -23,4 +23,10 @@
     font: 14px helvetica, arial, sans-serif;
     width: 0.5cm;
     height: 0.5cm;
+}
+
+#rules {
+    margin: auto;
+    text-align: left;
+    width: 450px;
 }

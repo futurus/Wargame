@@ -7,7 +7,6 @@
     <script src="scripts/wargame.js"></script>
     <link rel="stylesheet" type="text/css" href="styles.css"/>
 </head>
-
 <body>
 <div id="container">
     Choose board
@@ -32,8 +31,8 @@
     <br />
     Player 1
     <select id="app-player1">
-        <option value="HM">Human</option>
-        <option selected value="MM">Minimax</option>
+        <option selected value="HM">Human</option>
+        <option value="MM">Minimax</option>
         <option value="AB">A-B Pruning</option>
         <option value="EM">Expectiminimax</option>
     </select>
@@ -45,16 +44,22 @@
         <option value="EM">Expectiminimax</option>
     </select>
     <br/>
-    <br/>
     &nbsp;&nbsp;
     <div id="app-button">
         <button id="app-start">Start</button>
         <button id="app-new">New Game</button>
     </div>
     <br />
+    <div id="rules" align="center"><b>Game rules.</b> There are 3 types of possible moves per turn:
+        <li>Commando Para Drop: You can take any unoccupied tile with this move.</li>
+        <li>M1 Death Blitz: From any tile you occupy, you can take one next to it (not diagonally).
+            You will capture any of the enemy tiles touching your new tile.</li>
+        <li>Sabotage: You can take any unoccupied tile. If there are enemy tiles next to it,
+            you have a Gamma chance of capturing them. On the other hand, you have a (1-Gamma)
+            chance of losing your newly acquired tile.</li>
+    </div>
     <br />
     <div id="app-message">&nbsp;</div>
-
     <div id="app-game">
         <table id="app-board">
             <tr>
@@ -123,7 +128,6 @@
         </table>
     </div>
     <br/>
-    <br/>
     <table align="center">
         <tr>Score
         </tr>
@@ -138,7 +142,6 @@
             </td>
         </tr>
     </table>
-    <br />
     <br />
     <table align="center">
         <tr>
